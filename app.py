@@ -199,7 +199,7 @@ def main():
 
                     # Add counter logic for letter collection
                     counter += 1
-                    if counter == 70:  # Collect letter every 70 frames
+                    if counter == 70 and mode != 1:  # Only collect letters when not in logging mode
                         collected_letters.append(keypoint_classifier_labels[hand_sign_id])
                         counter = 0
 
