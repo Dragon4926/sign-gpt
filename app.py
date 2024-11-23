@@ -649,7 +649,7 @@ def process_with_groq(text):
             messages=[
                 {
                     "role": "system",
-                    "content": "You must only reply in bengali language"
+                    "content": "You must only reply in bengali language. Continue the conversation further by adding more into the context."
                 },
                 {
                     "role": "user",
@@ -668,7 +668,7 @@ def process_with_groq(text):
 def create_output_window(text):
     # Create a new window
     output_window = tk.Tk()
-    output_window.title("Bengali Translation")
+    output_window.title("Bengali")
     
     # Configure dark theme colors
     bg_color = '#2b2b2b'
