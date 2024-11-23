@@ -24,6 +24,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow logging
 import tkinter as tk
 from tkinter import ttk
 
+from gtts import gTTS
+import pygame
+from io import BytesIO
+import tempfile
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -220,7 +225,7 @@ def main():
                         counter = 0  # Reset counter
                         # Process with Groq using the stored letters
                         result = process_with_groq(letters_to_send)
-                        # Create output window
+                        # Create and show output window
                         output_window = create_output_window(result)
                         output_window.mainloop()
                     except Exception as e:
@@ -670,46 +675,83 @@ def create_output_window(text):
     output_window = tk.Tk()
     output_window.title("Bengali")
     
+    # Initialize pygame mixer at the start
+    pygame.mixer.init()
+    
+    def play_tts():
+        try:
+            # Create gTTS object with increased speed
+            tts = gTTS(text=text, lang='bn', slow=False)  # Setting slow=False for faster speed
+            
+            # Optional: Use faster playback speed with pygame
+            pygame.mixer.init(frequency=24000)  # Increased frequency
+            
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
+            temp_filename = temp_file.name
+            temp_file.close()
+            
+            # Save the audio to the temporary file
+            tts.save(temp_filename)
+            
+            # Load and play the audio
+            pygame.mixer.music.load(temp_filename)
+            pygame.mixer.music.play()
+            
+            # Optional: Set playback speed (1.0 is normal, 1.5 is 50% faster)
+            pygame.mixer.music.set_pos(0)  # Reset position
+            
+            def check_playback():
+                if pygame.mixer.music.get_busy():
+                    output_window.after(50, check_playback)  # Reduced check interval
+                else:
+                    # Clean up after playback is complete
+                    pygame.mixer.music.unload()
+                    try:
+                        os.remove(temp_filename)
+                    except:
+                        pass
+            
+            check_playback()
+            
+        except Exception as e:
+            print(f"TTS Error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+    
     # Configure dark theme colors
     bg_color = '#2b2b2b'
     fg_color = '#ffffff'
     output_window.configure(bg=bg_color)
     
-    # Style configuration for ttk widgets
-    style = ttk.Style()
-    # Configure the scrollbar style properly
-    style.theme_use('default')  # Use default theme as base
-    style.configure('Vertical.TScrollbar',
-                   troughcolor=bg_color,
-                   background='#404040',
-                   arrowcolor=fg_color,
-                   bordercolor=bg_color,
-                   lightcolor='#404040',
-                   darkcolor='#404040')
+    # Create main container
+    main_container = tk.Frame(output_window, bg=bg_color)
+    main_container.pack(expand=True, fill='both', padx=20, pady=20)
     
-    # Create main frame with padding
-    main_frame = tk.Frame(output_window, bg=bg_color)
-    main_frame.pack(expand=True, fill='both', padx=20, pady=20)
+    # Create left frame for text
+    text_frame = tk.Frame(main_container, bg=bg_color)
+    text_frame.pack(side='left', expand=True, fill='both', padx=(0, 10))
     
-    # Create text widget with dark theme
+    # Create text widget
     text_widget = tk.Text(
-        main_frame,
+        text_frame,
         wrap=tk.WORD,
         font=('Arial', 14),
         bg=bg_color,
         fg=fg_color,
-        insertbackground=fg_color,  # Cursor color
-        selectbackground='#404040',  # Selection background
-        selectforeground=fg_color,   # Selection text color
+        insertbackground=fg_color,
+        selectbackground='#404040',
+        selectforeground=fg_color,
         relief=tk.FLAT,
         padx=10,
-        pady=10
+        pady=10,
+        width=40,  # Set a fixed width
+        height=10  # Set a fixed height
     )
     text_widget.pack(expand=True, fill='both', side='left')
     
-    # Add scrollbar with dark theme
+    # Add scrollbar
     scrollbar = ttk.Scrollbar(
-        main_frame,
+        text_frame,
         orient='vertical',
         command=text_widget.yview
     )
@@ -718,46 +760,55 @@ def create_output_window(text):
     
     # Insert the text
     text_widget.insert('1.0', text)
-    text_widget.config(state='disabled')  # Make text read-only
+    text_widget.config(state='disabled')
     
-    # Calculate window size based on content
-    text_widget.update()
-    content_width = text_widget.winfo_reqwidth()
-    content_height = text_widget.winfo_reqheight()
+    # Create right frame for buttons
+    button_frame = tk.Frame(main_container, bg=bg_color)
+    button_frame.pack(side='right', fill='y', padx=(10, 0))
     
-    # Get screen dimensions
-    screen_width = output_window.winfo_screenwidth()
-    screen_height = output_window.winfo_screenheight()
-    
-    # Calculate window size (max 80% of screen size)
-    window_width = min(content_width + 60, int(screen_width * 0.8))
-    window_height = min(content_height + 60, int(screen_height * 0.8))
-    
-    # Ensure minimum size
-    window_width = max(window_width, 400)
-    window_height = max(window_height, 300)
-    
-    # Calculate position for center of screen
-    x_position = (screen_width - window_width) // 2
-    y_position = (screen_height - window_height) // 2
-    
-    # Set window size and position
-    output_window.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
-    
-    # Add window close button with dark theme
-    close_button = tk.Button(
-        output_window,
-        text="Close",
-        command=output_window.destroy,
+    # Add play button
+    play_button = tk.Button(
+        button_frame,
+        text="🔊 Play",
+        command=play_tts,
         bg='#404040',
         fg=fg_color,
         activebackground='#505050',
         activeforeground=fg_color,
         relief=tk.FLAT,
         padx=20,
-        pady=5
+        pady=5,
+        width=10  # Set fixed width for buttons
     )
-    close_button.pack(pady=10)
+    play_button.pack(pady=(0, 5))
+    
+    # Add close button
+    close_button = tk.Button(
+        button_frame,
+        text="Close",
+        command=lambda: [pygame.mixer.quit(), output_window.destroy()],
+        bg='#404040',
+        fg=fg_color,
+        activebackground='#505050',
+        activeforeground=fg_color,
+        relief=tk.FLAT,
+        padx=20,
+        pady=5,
+        width=10  # Set fixed width for buttons
+    )
+    close_button.pack()
+    
+    # Set window size and position
+    window_width = 800  # Increased width to accommodate side-by-side layout
+    window_height = 400
+    screen_width = output_window.winfo_screenwidth()
+    screen_height = output_window.winfo_screenheight()
+    x_position = (screen_width - window_width) // 2
+    y_position = (screen_height - window_height) // 2
+    output_window.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+    
+    # Clean up pygame when window is closed
+    output_window.protocol("WM_DELETE_WINDOW", lambda: [pygame.mixer.quit(), output_window.destroy()])
     
     return output_window
 
