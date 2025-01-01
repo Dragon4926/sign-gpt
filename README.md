@@ -1,101 +1,98 @@
-# Hand Gesture Recognition System
+# Sign GPT
 
-A real-time hand gesture recognition system using MediaPipe and OpenCV that translates hand signs into text.
-
-
+## Overview
+This project envisions AI as a companion for sign language users, especially non-verbal individuals. It interprets gestures, processes them via an AI model, and responds in text or audio in the user's native language. By bridging language barriers, it promotes inclusivity, independence, and real-time communication.
 
 ## Features
+- **Real-Time Gesture Recognition**: Detect and classify hand gestures in real-time.
+- **Customizable Data Collection**: Collect data for different hand gestures and log them into CSV files.
+- **Visual Feedback**: Display bounding boxes, landmarks, and gesture classifications on the screen.
+- **Support for Static and Dynamic Modes**: Enable static image mode or track dynamic hand movements.
+- **Language Output**: Generate responses in text or audio in the user's native language.
 
-- Real-time hand tracking and gesture recognition
-- Support for both static hand signs and dynamic finger gestures
-- Built-in data collection mode for custom gesture training
-- Pre-trained models for common hand signs
-- FPS performance monitoring
+## Prerequisites
 
-## Requirements
+1. **Python**: Ensure Python 3.7 or higher is installed.
+2. **Libraries**:
+   - `opencv-python`
+   - `numpy`
+   - `mediapipe`
+3. **Model Files**:
+   - KeyPoint Classifier and Point History Classifier models (`model/keypoint_classifier` and `model/point_history_classifier`).
+   - Corresponding label files in CSV format.
 
-- Python 3.10
-- mediapipe 
-- OpenCV 
-- TensorFlow 
-- scikit-learn 
-- matplotlib 
+You can install the required Python libraries using the command:
 
-## Quick Start
-
-1. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install opencv-python mediapipe numpy
 ```
 
-2. Run the application:
+## Usage
+
+### Command-Line Arguments
+The script supports the following command-line arguments:
+
+- `--device`: Camera device ID (default: 2).
+- `--width`: Width of the video capture (default: 960).
+- `--height`: Height of the video capture (default: 540).
+- `--use_static_image_mode`: Enable static image mode for debugging.
+- `--min_detection_confidence`: Minimum confidence for detection (default: 0.7).
+- `--min_tracking_confidence`: Minimum confidence for tracking (default: 0.5).
+
+### Running the Application
+Run the script with the following command:
+
 ```bash
 python app.py
 ```
 
-### Command Line Options
+### Controls
+- **ESC**: Exit the application.
+- **C**: Start collecting data for the current label.
+- **Z**: Stop collecting and move to the next label.
+- **N/K/H**: Switch between logging modes.
 
-- `--device`: Camera device ID (default: 0)
-- `--width`: Camera capture width (default: 960)
-- `--height`: Camera capture height (default: 540)
-- `--min_detection_confidence`: Detection threshold (default: 0.5)
-- `--min_tracking_confidence`: Tracking threshold (default: 0.5)
-
-## Project Structure
-
+## File Structure
 ```
-├── app.py                         # Main application
-├── model/
-│   ├── keypoint_classifier/       # Hand sign recognition
-│   │   ├── keypoint.csv          # Training data
+.
+├── app.py
+├── model
+│   ├── keypoint_classifier
 │   │   ├── keypoint_classifier.tflite
-│   │   └── keypoint_classifier_label.csv
-│   └── point_history_classifier/  # Gesture recognition
-│       ├── point_history.csv     # Training data
+│   │   ├── keypoint_classifier_label.csv
+│   ├── point_history_classifier
 │       ├── point_history_classifier.tflite
-│       └── point_history_classifier_label.csv
-└── utils/
-    └── cvfpscalc.py             # FPS calculator
+│       ├── point_history_classifier_label.csv
+├── utils.py
 ```
 
-## Training Custom Gestures
+## Functionality
 
-### Hand Signs (Static Gestures)
+1. **Hand Detection**:
+   - Uses Mediapipe's hand tracking to detect and extract landmarks.
 
-1. Press 'k' to enter keypoint logging mode
-2. Press 'c' to collect data for curr and 'z' for next gesture classes
-3. Train the model using `keypoint_classification.ipynb`
+2. **Data Processing**:
+   - Preprocesses landmark and point history data for classification.
 
-## Controls
+3. **Gesture Classification**:
+   - Employs custom-trained classifiers to recognize hand gestures.
 
-- 'k': Enter keypoint logging mode
-- 'c' or 'z': Record data for corresponding gesture class
-- 'q': Quit application
+4. **Response Generation**:
+   - Translates recognized gestures into text or audio responses in the user's native language.
 
-## Model Architecture
+5. **Visualization**:
+   - Displays hand landmarks, bounding boxes, and gesture information on the video feed.
 
-### Hand Sign Classifier
-- Input: 21 hand landmarks (x, y coordinates)
-- Architecture: Simple MLP (Multi-Layer Perceptron)
-- Output: Gesture classification
+## Future Upgrades
+- **Multi-Language Support**: Expand the language options for text and audio responses.
+- **Advanced Gesture Recognition**: Incorporate dynamic gestures and multi-hand interactions.
+- **Cloud Integration**: Allow data to be stored and processed on the cloud for improved scalability.
+- **Mobile Support**: Develop mobile applications for broader accessibility.
+- **Enhanced AI Models**: Integrate state-of-the-art models for higher accuracy and speed.
+- **Custom User Profiles**: Enable personalized responses and gesture sets based on user preferences.
 
-### Finger Gesture Classifier
-- Input: Point history of finger movements
-- Architecture: Choice of standard MLP or LSTM
-- Output: Movement pattern classification
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Submit a pull request
-
-## Acknowledgments
-
-- [Debopriyo Das](https://github.com/dragon4926) - Project creator and maintainer
-- MediaPipe team for the hand tracking solution
+## Contributions
+Feel free to contribute to this project by adding new gesture types, improving classification accuracy, or enhancing visualization features.
 
 ## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
